@@ -268,7 +268,7 @@ const SpeedTranslationGame = ({ words }: { words: GameWord[] }) => {
   const [currentWord, setCurrentWord] = useState<GameWord | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(30);
   const [gameActive, setGameActive] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
 
@@ -285,7 +285,7 @@ const SpeedTranslationGame = ({ words }: { words: GameWord[] }) => {
 
   const startGame = () => {
     setScore(0);
-    setTimeLeft(10);
+    setTimeLeft(30);
     setGameActive(true);
     setGameStarted(true);
     generateQuestion();
@@ -326,7 +326,7 @@ const SpeedTranslationGame = ({ words }: { words: GameWord[] }) => {
         </CardHeader>
         <CardContent className="text-center space-y-4">
           <p className="text-gray-600">Translate English words to Korean as fast as you can!</p>
-          <p className="text-sm text-gray-500">60 seconds • 1 point per correct answer</p>
+          <p className="text-sm text-gray-500">30 seconds • 1 point per correct answer</p>
           <Button onClick={startGame} size="lg">Start Game</Button>
         </CardContent>
       </Card>
@@ -351,7 +351,7 @@ const SpeedTranslationGame = ({ words }: { words: GameWord[] }) => {
             <span className="text-sm">Score: {score}</span>
           </div>
         </div>
-        <Progress value={(timeLeft / 60) * 100} className="h-2" />
+        <Progress value={(timeLeft / 30) * 100} className="h-2" />
       </CardHeader>
       <CardContent className="space-y-6">
         {currentWord && gameActive && (

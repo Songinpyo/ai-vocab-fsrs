@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { databaseService } from "@/services/databaseService";
 import { SavedWord } from "@/types/vocabulary";
-import { BookOpen, Search, Trash2, Volume2 } from "lucide-react";
+import { BookOpen, Search, Trash2, Volume2, Download } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -54,6 +54,67 @@ const MyWords = () => {
       toast.error("Failed to load your vocabulary");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleExportMarkdown = async () => {
+    if (words.length === 0) {
+      toast.info("You have no words to export.");
+      return;
+    }
+
+    const toastId = toast.loading("Preparing your vocabulary for export...", {
+      description: "This may take a moment for large vocabularies.",
+    });
+
+    try {
+      const allWordsWithDetails = await Promise.all(
+        words.map(word => databaseService.getWordWithMeanings(word.id))
+      );
+
+      let markdownContent = "# My Vocabulary\n\n";
+
+      allWordsWithDetails.forEach(word => {
+        if (!word) return;
+
+        markdownContent += `## ${word.text}\n\n`;
+        if (word.phonetic) {
+          markdownContent += `**Phonetic:** ${word.phonetic}\n\n`;
+        }
+
+        word.meanings.forEach(meaning => {
+          markdownContent += `### ${meaning.partOfSpeech}\n`;
+          markdownContent += `- **Definition:** ${meaning.englishDefinition}\n`;
+          markdownContent += `- **Korean:** ${meaning.koreanTranslation}\n`;
+          
+          if (meaning.examples && meaning.examples.length > 0) {
+            markdownContent += "- **Examples:**\n";
+            meaning.examples.forEach(example => {
+              markdownContent += `  - *"${example}"*\n`;
+            });
+          }
+          markdownContent += `\n`;
+        });
+        markdownContent += "---\n\n";
+      });
+
+      const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'ai-vocab-fsrs-export.md');
+      
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Vocabulary exported successfully!", { id: toastId });
+
+    } catch (error) {
+      console.error("Error exporting vocabulary:", error);
+      toast.error("Failed to export vocabulary.", { id: toastId });
     }
   };
 
@@ -128,9 +189,9 @@ const MyWords = () => {
             </p>
           </div>
 
-          {/* Search */}
-          <div className="mb-8">
-            <div className="relative max-w-md mx-auto">
+          {/* Search & Export */}
+          <div className="mb-8 flex justify-center items-center gap-4">
+            <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 type="text"
@@ -140,6 +201,10 @@ const MyWords = () => {
                 className="pl-10"
               />
             </div>
+            <Button onClick={handleExportMarkdown} variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Export as Markdown
+            </Button>
           </div>
 
           {/* Words List */}
